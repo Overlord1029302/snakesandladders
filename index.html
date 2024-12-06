@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake and Ladder Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            grid-template-rows: repeat(10, 50px);
+            gap: 1px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .square {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            position: relative;
+        }
+
+        .player {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .snake {
+            background-color: green;
+            color: white;
+            font-size: 10px;
+        }
+
+        .ladder {
+            background-color: blue;
+            color: white;
+            font-size: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        #playerPosition, #diceResult {
+            font-size: 18px;
+        }
+
+        #congratulations {
+            color: green;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake and Ladder Game</h1>
+    <div id="board"></div>
+
+    <button id="rollButton">Roll Dice</button>
+    <p id="playerPosition">Player 1's Position: 1</p>
+    <p id="diceResult">Dice Result: 0</p>
+    <p id="congratulations"></p>
+
+    <script>
+        let playerPosition = 1; // Player starts at position 1
+        const rollButton = document.getElementById('rollButton');
+        const playerPositionDisplay = document.getElementById('playerPosition');
+        const diceResultDisplay = document.getElementById('diceResult');
+        const congratulationsDisplay = document.getElementById('congratulations');
+        const board = document.getElementById('board');
+
+        // Define snakes and ladders as key-value pairs (start: end)
+        const snakes = {
+            16: 6,
+            47: 26,
+            49: 11,
+            56: 53,
+            62: 19,
+            64: 60,
+            87: 24,
+            93: 73,
+            95: 75,
+            98: 78
+        };
+
+        const ladders = {
+            1: 38,
+            4: 14,
+            9: 31,
+            21: 42,
+            28: 84,
+            36: 44,
+            51: 67,
+            71: 91,
+            80: 100
+        };
+
+        // Create the board dynamically (100 squares)
+        function createBoard() {
+            for (let i = 1; i <= 100; i++) {
+                const square = document.createElement('div');
+                square.classList.add('square');
+                square.id = `square-${i}`;
+                
+                // Mark snakes and ladders
+                if (snakes[i]) {
+                    square.classList.add('snake');
+                    square.textContent = `S${snakes[i]}`;
+                } else if (ladders[i]) {
+                    square.classList.add('ladder');
+                    square.textContent = `L${ladders[i]}`;
+                }
+
+                board.appendChild(square);
+            }
+
+            // Initialize player position (at square 1)
+            const startSquare = document.getElementById('square-1');
+            startSquare.innerHTML = '<div class="player"></div>';
+        }
+
+        // Update player position
+        function updatePosition(position) {
+            // Correct position if it goes above 100
+            if (position > 100) {
+                position = 100;
+            }
+
+            // Apply snake/ladder only after dice roll
+            if (snakes[position]) {
+                position = snakes[position];
+            } else if (ladders[position]) {
+                position = ladders[position];
+            }
+
+            playerPosition = position;
+            playerPositionDisplay.textContent = `Player 1's Position: ${playerPosition}`;
+            
+            // Reset the board
+            document.querySelectorAll('.square').forEach(square => {
+                square.innerHTML = '';
+                if (square.classList.contains('snake') || square.classList.contains('ladder')) {
+                    square.textContent = square.classList.contains('snake') ? `S${snakes[square.id.replace('square-', '')]}` : `L${ladders[square.id.replace('square-', '')]}`;
+                }
+            });
+
+            // Place player on the board
+            const playerSquare = document.getElementById(`square-${playerPosition}`);
+            playerSquare.innerHTML = '<div class="player"></div>';
+        }
+
+        // Roll dice and move player
+        rollButton.addEventListener('click', () => {
+            // If the player is at position 100, display congratulations and reset
+            if (playerPosition === 100) {
+                congratulationsDisplay.textContent = "Congratulations! You've won the game!";
+                setTimeout(resetGame, 2000); // Wait 2 seconds before resetting
+                return;
+            }
+
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            diceResultDisplay.textContent = `Dice Result: ${diceRoll}`;
+
+            let newPosition = playerPosition + diceRoll;
+            updatePosition(newPosition);
+        });
+
+        // Reset the game
+        function resetGame() {
+            playerPosition = 1; // Reset player position to 1
+            congratulationsDisplay.textContent = '';
+            diceResultDisplay.textContent = 'Dice Result: 0';
+            playerPositionDisplay.textContent = 'Player 1\'s Position: 1';
+
+            // Clear the board and place player back at position 1
+            document.querySelectorAll('.square').forEach(square => {
+                square.innerHTML = ''; // Remove player from all squares
+                if (square.classList.contains('snake') || square.classList.contains('ladder')) {
+                    square.textContent = square.classList.contains('snake') ? `S${snakes[square.id.replace('square-', '')]}` : `L${ladders[square.id.replace('square-', '')]}`;
+                }
+            });
+
+            // Place player at starting position (1)
+            const startSquare = document.getElementById('square-1');
+            startSquare.innerHTML = '<div class="player"></div>';
+        }
+
+        // Initialize the board and player position
+        createBoard();
+        
+    </script>
+</body>
+</html>
